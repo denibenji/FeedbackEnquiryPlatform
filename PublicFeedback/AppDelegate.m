@@ -5,21 +5,53 @@
 //  Created by Ben Chan on 28/4/14.
 //  Copyright (c) 2014 IS480_FYP. All rights reserved.
 //
-
+#import "StartViewController.h"
 #import "AppDelegate.h"
 
 @implementation AppDelegate
 
+@synthesize spEngine = _spEngine;
 @synthesize managedObjectContext = _managedObjectContext;
 @synthesize managedObjectModel = _managedObjectModel;
 @synthesize persistentStoreCoordinator = _persistentStoreCoordinator;
+@synthesize spDatabase = _spDatabase;
+
+- (void)setSpDatabase:(UIManagedDocument *)spDatabase
+{
+    if (_spDatabase != spDatabase) {
+        _spDatabase = spDatabase;
+    }
+}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    // Override point for customization after application launch
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    
+    [[NSUserDefaults standardUserDefaults] registerDefaults:
+     [NSDictionary dictionaryWithObject:@"99" forKey:@"setting_tableNumber"]];
+    
+    [[NSUserDefaults standardUserDefaults] registerDefaults:
+     [NSDictionary dictionaryWithObject:@"10.211.55.3:2103" forKey:@"setting_serverAddress"]];
+    
+    NSString *serverAddress = [defaults stringForKey:@"setting_serverAddress"];
+    NSString *apiAddress = @"index.php";
+    
+    NSLog(@"Server Address: %@",serverAddress);
+    self.spEngine = [[SPEngine alloc] initWithHostName:serverAddress
+                                               apiPath:apiAddress
+                                    customHeaderFields:nil];
+    
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
     self.window.backgroundColor = [UIColor whiteColor];
+    StartViewController *rootControl = [[StartViewController alloc]init];
+    //UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:rootControl];
+    self.window.rootViewController = rootControl;
     [self.window makeKeyAndVisible];
+    
+    if (!self.spDatabase) {
+    }
     return YES;
 }
 
@@ -145,5 +177,36 @@
 {
     return [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject];
 }
+
+
+
+
+
+// In order to process the response you get from interacting with the Facebook login process,
+// you need to override application:openURL:sourceApplication:annotation:
+- (BOOL)application:(UIApplication *)application
+            openURL:(NSURL *)url
+  sourceApplication:(NSString *)sourceApplication
+         annotation:(id)annotation {
+    
+    // Call FBAppCall's handleOpenURL:sourceApplication to handle Facebook app responses
+    BOOL wasHandled = [FBAppCall handleOpenURL:url sourceApplication:sourceApplication];
+    
+    // You can add your app-specific url handling code here if needed
+    
+    return wasHandled;
+}
+/*
+// Implement the loginViewShowingLoggedOutUser: delegate method to modify your app's UI for a logged-out user experience
+- (void)loginViewShowingLoggedOutUser:(FBLoginView *)loginView {
+//    profilePictureView.profileID = nil;
+//    lblFBname.text = @"";
+//    lblFBstatus.text= @"You're not logged in!";
+    
+    // clearing NSUserDefaults
+    NSString *appDomain = [[NSBundle mainBundle] bundleIdentifier];
+    [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:appDomain];
+}
+*/
 
 @end
